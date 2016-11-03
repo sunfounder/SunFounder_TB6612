@@ -10,7 +10,6 @@
 * Update      : Cavon    2016-09-23    New release
 **********************************************************************
 '''
-import RPi.GPIO as GPIO
 
 class Motor(object):
 	''' Motor driver class
@@ -25,49 +24,46 @@ class Motor(object):
 	_DEBUG = False
 	_DEBUG_INFO = 'DEBUG "TB6612.py":'
 
-	def __init__(self, direction_channel, pwm_channel, offset=True):
+	def __init__(self, direction_channel, pwm=None, offset=True):
 		'''Init a motor on giving dir. channel and PWM channel.'''
 		if self._DEBUG:
 			print self._DEBUG_INFO, "Debug on"
 		self.direction_channel = direction_channel
-		self.pwm_channel = pwm_channel
-		self.offset = offset
-		self.forward_offset = self.offset
+		self._pwm = pwm
+		self._offset = offset
+		self.forward_offset = self._offset
 
 		self.backward_offset = not self.forward_offset
 		self.set_debug(self._DEBUG)
-		self.speed = 0
-		GPIO.setwarnings(False)
-		GPIO.setmode(GPIO.BCM)
+		self._speed = 0
 
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'setup motor direction channel at', direction_channel
-			print self._DEBUG_INFO, 'setup motor pwm channel at', pwm_channel
-		GPIO.setup(self.direction_channel, GPIO.OUT)
-		GPIO.setup(self.pwm_channel, GPIO.OUT)
-		self.speed_control = GPIO.PWM(self.pwm_channel, 1000)
-		self.speed_control.start(0)
+			#print self._DEBUG_INFO, 'setup motor pwm channel at', pwm_channel
+	@property
+	def speed(self):
 
-	def set_speed(self, speed):
+	@speed.setter
+	def speed(self, speed):
 		''' Set Speed with giving value '''
 		if speed not in range(0, 101):
 			raise ValueError('speed ranges fron 0 to 100, not "{0}"'.format(speed))
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Set speed to: ', speed
-		self.speed = speed
-		self.speed_control.ChangeDutyCycle(self.speed)
+		self._speed = speed
+		self._pwm(self._speed)
 
 	def forward(self):
 		''' Set the motor direction to forward '''
 		GPIO.output(self.direction_channel, self.forward_offset)
-		self.set_speed(self.speed)
+		self.set_speed(self._speed)
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Motor moving forward (%s)' % str(self.forward_offset)
 
 	def backward(self):
 		''' Set the motor direction to backward '''
 		GPIO.output(self.direction_channel, self.backward_offset)
-		self.set_speed(self.speed)
+		self.set_speed(self._speed)
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Motor moving backward (%s)' % str(self.backward_offset)
 
@@ -77,16 +73,26 @@ class Motor(object):
 			print self._DEBUG_INFO, 'Motor stop'
 		self.set_speed(0)
 
-	def set_offset(self, value):
+	@property
+	def offset(self):
+		return self._offset
+
+	@offset.setter
+	def offset(self, value):
 		''' Set offset for much user-friendly '''
 		if value not in (True, False):
 			raise ValueError('offset value must be Bool value, not"{0}"'.format(value))
 		self.forward_offset = value
 		self.backward_offset = not self.forward_offset
 		if self._DEBUG:
-			print self._DEBUG_INFO, 'Set offset to %d' % self.offset
+			print self._DEBUG_INFO, 'Set offset to %d' % self._offset
 
-	def set_debug(self, debug):
+	@property
+	def debug(self, debug):
+		return self._DEBUG
+
+	@debug.setter
+	def debug(self, debug):
 		''' Set if debug information shows '''
 		if debug in (True, False):
 			self._DEBUG = debug
@@ -97,6 +103,14 @@ class Motor(object):
 			print self._DEBUG_INFO, "Set debug on"
 		else:
 			print self._DEBUG_INFO, "Set debug off"
+
+	@property
+	def pwm(self):
+		return self._pwm
+
+	@pwm.setter
+	def pwm(self, pwm):
+		self._pwm = pwm
 
 if __name__ == '__main__':
 	import time
