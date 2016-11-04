@@ -10,6 +10,7 @@
 * Update      : Cavon    2016-09-23    New release
 **********************************************************************
 '''
+import RPi.GPIO as GPIO
 
 class Motor(object):
 	''' Motor driver class
@@ -34,20 +35,27 @@ class Motor(object):
 		self.forward_offset = self._offset
 
 		self.backward_offset = not self.forward_offset
-		self.set_debug(self._DEBUG)
 		self._speed = 0
+
+		GPIO.setwarnings(False)
+		GPIO.setmode(GPIO.BCM)
 
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'setup motor direction channel at', direction_channel
-			#print self._DEBUG_INFO, 'setup motor pwm channel at', pwm_channel
+			print self._DEBUG_INFO, 'setup motor pwm channel as', self._pwm.__name__
+		GPIO.setup(self.direction_channel, GPIO.OUT)
+
 	@property
 	def speed(self):
+		return self._speed
 
 	@speed.setter
 	def speed(self, speed):
 		''' Set Speed with giving value '''
 		if speed not in range(0, 101):
 			raise ValueError('speed ranges fron 0 to 100, not "{0}"'.format(speed))
+		if not callable(self._pwm):
+			raise ValueError('pwm is not callable, please set Motor.pwm to a pwm control function with only 1 veriable speed')
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Set speed to: ', speed
 		self._speed = speed
@@ -56,14 +64,14 @@ class Motor(object):
 	def forward(self):
 		''' Set the motor direction to forward '''
 		GPIO.output(self.direction_channel, self.forward_offset)
-		self.set_speed(self._speed)
+		self.speed = self._speed
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Motor moving forward (%s)' % str(self.forward_offset)
 
 	def backward(self):
 		''' Set the motor direction to backward '''
 		GPIO.output(self.direction_channel, self.backward_offset)
-		self.set_speed(self._speed)
+		self.speed = self._speed
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Motor moving backward (%s)' % str(self.backward_offset)
 
@@ -71,7 +79,7 @@ class Motor(object):
 		''' Stop the motor by giving a 0 speed '''
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Motor stop'
-		self.set_speed(0)
+		self.speed = 0
 
 	@property
 	def offset(self):
@@ -110,9 +118,12 @@ class Motor(object):
 
 	@pwm.setter
 	def pwm(self, pwm):
+		if self._DEBUG:
+			print self._DEBUG_INFO, 'pwm set'
 		self._pwm = pwm
 
-if __name__ == '__main__':
+
+def test():
 	import time
 
 	print "********************************************"
@@ -125,41 +136,60 @@ if __name__ == '__main__':
 	print "*         Connect PWMB to BCM12            *"
 	print "*                                          *"
 	print "********************************************"
-	motorA = Motor(17, 27)
-	motorB = Motor(18, 22)
-	motorA.set_debug(True)
-	motorB.set_debug(True)
+	GPIO.setmode(GPIO.BCM)
+	GPIO.setup((27, 22), GPIO.OUT)
+	a = GPIO.PWM(27, 60)
+	b = GPIO.PWM(22, 60)
+	a.start(0)
+	b.start(0)
+
+	def a_speed(value):
+		a.ChangeDutyCycle(value)
+
+	def b_speed(value):
+		b.ChangeDutyCycle(value)
+
+	motorA = Motor(23)
+	motorB = Motor(24)
+	motorA.debug = True
+	motorB.debug = True
+	motorA.pwm = a_speed
+	motorB.pwm = b_speed
 
 	delay = 0.05
 
 	motorA.forward()
 	for i in range(0, 101):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 
 	motorA.backward()
 	for i in range(0, 101):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 
 	motorB.forward()
 	for i in range(0, 101):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
 
 	motorB.backward()
 	for i in range(0, 101):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
+
+
+if __name__ == '__main__':
+	test()
