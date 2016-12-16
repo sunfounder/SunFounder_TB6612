@@ -13,8 +13,11 @@
 
 import time
 from SunFounder_TB6612 import TB6612
+import RPi.GPIO as GPIO
 
 def main():
+	import time
+
 	print "********************************************"
 	print "*                                          *"
 	print "*           SunFounder TB6612              *"
@@ -22,46 +25,61 @@ def main():
 	print "*          Connect MA to BCM17             *"
 	print "*          Connect MB to BCM18             *"
 	print "*         Connect PWMA to BCM27            *"
-	print "*         Connect PWMB to BCM12            *"
+	print "*         Connect PWMB to BCM22            *"
 	print "*                                          *"
 	print "********************************************"
-	motorA = TB6612.Motor(17, 27)
-	motorB = TB6612.Motor(18, 22)
-	motorA.set_debug(True)
-	motorB.set_debug(True)
+	GPIO.setmode(GPIO.BCM)
+	GPIO.setup((27, 22), GPIO.OUT)
+	a = GPIO.PWM(27, 60)
+	b = GPIO.PWM(22, 60)
+	a.start(0)
+	b.start(0)
+
+	def a_speed(value):
+		a.ChangeDutyCycle(value)
+
+	def b_speed(value):
+		b.ChangeDutyCycle(value)
+
+	motorA = TB6612.Motor(17)
+	motorB = TB6612.Motor(18)
+	motorA.debug = True
+	motorB.debug = True
+	motorA.pwm = a_speed
+	motorB.pwm = b_speed
 
 	delay = 0.05
 
 	motorA.forward()
 	for i in range(0, 101):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 
 	motorA.backward()
 	for i in range(0, 101):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorA.set_speed(i)
+		motorA.speed = i
 		time.sleep(delay)
 
 	motorB.forward()
 	for i in range(0, 101):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
 
 	motorB.backward()
 	for i in range(0, 101):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
 	for i in range(100, -1, -1):
-		motorB.set_speed(i)
+		motorB.speed = i
 		time.sleep(delay)
 
 def destroy():
