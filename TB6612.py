@@ -14,7 +14,7 @@ import RPi.GPIO as GPIO
 
 class Motor(object):
 	''' Motor driver class
-		Set direction_channel to the GPIO channel which connect to MA, 
+		Set direction_channel to the GPIO channel which connect to MA,
 		Set motor_B to the GPIO channel which connect to MB,
 		Both GPIO channel use BCM numbering;
 		Set pwm_channel to the PWM channel which connect to PWMA,
@@ -55,7 +55,7 @@ class Motor(object):
 		if speed not in range(0, 101):
 			raise ValueError('speed ranges fron 0 to 100, not "{0}"'.format(speed))
 		if not callable(self._pwm):
-			raise ValueError('pwm is not callable, please set Motor.pwm to a pwm control function with only 1 veriable speed')
+			raise ValueError('pwm is not callable, please set Motor.pwm to a pwm control function with only 1 variable speed')
 		if self._DEBUG:
 			print self._DEBUG_INFO, 'Set speed to: ', speed
 		self._speed = speed
