@@ -18,16 +18,16 @@ import RPi.GPIO as GPIO
 def main():
 	import time
 
-	print "********************************************"
-	print "*                                          *"
-	print "*           SunFounder TB6612              *"
-	print "*                                          *"
-	print "*          Connect MA to BCM17             *"
-	print "*          Connect MB to BCM18             *"
-	print "*         Connect PWMA to BCM27            *"
-	print "*         Connect PWMB to BCM22            *"
-	print "*                                          *"
-	print "********************************************"
+	print("********************************************")
+	print("*                                          *")
+	print("*           SunFounder TB6612              *")
+	print("*                                          *")
+	print("*          Connect MA to BCM17             *")
+	print("*          Connect MB to BCM18             *")
+	print("*         Connect PWMA to BCM27            *")
+	print("*         Connect PWMB to BCM22            *")
+	print("*                                          *")
+	print("********************************************")
 	GPIO.setmode(GPIO.BCM)
 	GPIO.setup((27, 22), GPIO.OUT)
 	a = GPIO.PWM(27, 60)
